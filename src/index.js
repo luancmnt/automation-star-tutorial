@@ -27,10 +27,12 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found.' });
 });
 
-app.listen(PORT, () => {
-  console.log(`E-commerce checkout API running on http://localhost:${PORT}`);
-  console.log(`Swagger UI: http://localhost:${PORT}/docs`);
-  console.log(`OpenAPI YAML: http://localhost:${PORT}/openapi.yaml`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`E-commerce checkout API running on http://localhost:${PORT}`);
+    console.log(`Swagger UI: http://localhost:${PORT}/docs`);
+    console.log(`OpenAPI YAML: http://localhost:${PORT}/openapi.yaml`);
+  });
+}
 
 module.exports = app;

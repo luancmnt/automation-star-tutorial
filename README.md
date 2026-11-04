@@ -1,6 +1,6 @@
 # E-commerce Checkout API
 
-REST API for an e-commerce checkout flow. It exposes four business endpoints — **Register**, **Login**, **Cart**, and **Checkout** — built with Express and an in-memory store (data lives in variables and resets when the process stops).
+REST API for an e-commerce checkout flow. It exposes **Register**, **Login**, **Cart**, and **Checkout** endpoints built with Express and an in-memory store (data lives in variables and resets when the process stops).
 
 ## How to install
 
@@ -30,6 +30,18 @@ For local development with automatic restarts:
 npm run dev
 ```
 
+## How to run API tests
+
+The checkout discount cases from equivalence partitioning are automated with Mocha, SuperTest, and Chai. Copy `.env.example` to `.env` (seed emails and passwords, plus `BASE_URL`), start the API, then run:
+
+```bash
+cp .env.example .env
+npm start
+npm test
+```
+
+Mochawesome writes HTML and JSON to `reports/mochawesome/`. Test data lives in `test/data/`; helpers such as `login()` live in `test/helpers/`.
+
 ## Test data
 
 The process seeds three products and three users on startup.
@@ -50,7 +62,7 @@ The process seeds three products and three users on startup.
 | `prod-2` | USB-C Hub | 45.00 |
 | `prod-3` | Mechanical Keyboard | 120.00 |
 
-Carts start empty. Login first, then `POST /cart` with product IDs from the table above.
+Carts start empty. Login first, then `POST /cart` with product IDs from the table above. Use `GET /cart` to inspect the logged-in user's items.
 
 Example checkout flow:
 
@@ -64,6 +76,9 @@ curl -s http://localhost:3000/cart \
   -H 'Content-Type: application/json' \
   -d '{"items":[{"productId":"prod-1","quantity":1},{"productId":"prod-2","quantity":2}]}'
 
+curl -s http://localhost:3000/cart \
+  -H "Authorization: Bearer $TOKEN"
+
 curl -s http://localhost:3000/checkout \
   -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/json' \
@@ -74,7 +89,7 @@ curl -s http://localhost:3000/checkout \
 
 - **Register** creates a new user. Emails must be unique. Passwords must be at least 6 characters.
 - **Login** returns a bearer token. Cart and Checkout require `Authorization: Bearer <token>`.
-- **Cart** replaces the authenticated user's cart with the submitted items. Unknown product IDs are rejected.
+- **Cart** is scoped to the authenticated user. `POST /cart` replaces their items (unknown product IDs are rejected). `GET /cart` returns that user's current items and subtotal.
 - **Checkout** charges the current cart:
   - `cash` applies a **10% discount** on the subtotal.
   - `credit_card` applies **no discount**.
@@ -88,7 +103,7 @@ curl -s http://localhost:3000/checkout \
 | --- | --- |
 | `http://localhost:3000/register` | `POST` register a user |
 | `http://localhost:3000/login` | `POST` login and receive a token |
-| `http://localhost:3000/cart` | `POST` set the authenticated user's cart |
+| `http://localhost:3000/cart` | `GET` view the authenticated user's cart; `POST` set it |
 | `http://localhost:3000/checkout` | `POST` pay for the current cart |
 | `http://localhost:3000/docs` | Swagger UI rendered from the OpenAPI YAML |
 | `http://localhost:3000/openapi.yaml` | Raw OpenAPI specification |

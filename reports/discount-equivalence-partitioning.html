@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Discount business rule — Equivalence Partitioning</title>
+  <style>
+    :root {
+      --bg: #f6f4ef;
+      --ink: #1c1917;
+      --muted: #57534e;
+      --line: #e7e5e4;
+      --card: #fffdf8;
+      --pass: #166534;
+      --pass-bg: #dcfce7;
+      --fail: #991b1b;
+      --fail-bg: #fee2e2;
+      --api-ok: #1d4ed8;
+      --api-ok-bg: #dbeafe;
+      --api-rej: #9a3412;
+      --api-rej-bg: #ffedd5;
+      --code: #1c1917;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.5;
+    }
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+    }
+    h1, h2, h3 { line-height: 1.25; }
+    h1 { font-size: 1.75rem; margin: 0 0 0.35rem; }
+    h2 { font-size: 1.25rem; margin: 2rem 0 0.75rem; }
+    p { margin: 0.5rem 0; }
+    .meta { color: var(--muted); font-size: 0.95rem; }
+    .banner {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin: 1.25rem 0 1.5rem;
+    }
+    .stat {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0.85rem 1.1rem;
+      min-width: 8rem;
+    }
+    .stat strong { display: block; font-size: 1.5rem; }
+    .stat span { color: var(--muted); font-size: 0.85rem; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card);
+      border: 1px solid var(--line);
+    }
+    th, td {
+      text-align: left;
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+    th { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); }
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.82rem;
+    }
+    pre {
+      background: #1c1917;
+      color: #fafaf9;
+      padding: 0.9rem;
+      overflow-x: auto;
+      border-radius: 8px;
+      margin: 0.4rem 0 0;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .pass { background: var(--pass-bg); color: var(--pass); }
+    .fail { background: var(--fail-bg); color: var(--fail); }
+    .api-ok { background: var(--api-ok-bg); color: var(--api-ok); }
+    .api-rej { background: var(--api-rej-bg); color: var(--api-rej); }
+    article {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1.1rem 1.2rem 1.3rem;
+      margin: 1rem 0;
+    }
+    article h3 { margin: 0 0 0.35rem; }
+    .row { color: var(--muted); font-size: 0.92rem; }
+    details { margin-top: 0.85rem; }
+    summary { cursor: pointer; font-weight: 600; }
+    .finding {
+      background: #ecfdf5;
+      border: 1px solid #bbf7d0;
+      border-radius: 10px;
+      padding: 1rem 1.1rem;
+    }
+    ul { margin: 0.4rem 0 0.4rem 1.2rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Discount business rule — Equivalence Partitioning</h1>
+    <p class="meta">
+      API: <code>http://localhost:3000</code> · Executed: 2026-11-04T10:32:04Z · Technique: equivalence partitioning only
+    </p>
+
+    <div class="banner">
+      <div class="stat"><strong>4</strong><span>test cases</span></div>
+      <div class="stat"><strong>4</strong><span>passed</span></div>
+      <div class="stat"><strong>0</strong><span>failed</span></div>
+      <div class="stat"><strong>2 / 2</strong><span>API success / expected rejection</span></div>
+    </div>
+
+    <h2>Rule under test</h2>
+    <p>From <code>README.md</code> and <code>openapi.yaml</code> (<code>POST /checkout</code>):</p>
+    <ul>
+      <li><code>cash</code> applies a <strong>10% discount</strong> on the cart subtotal.</li>
+      <li><code>credit_card</code> applies <strong>no discount</strong>.</li>
+      <li><code>paymentMethod</code> is an enum: <code>cash</code>, <code>credit_card</code>.</li>
+      <li>An empty cart cannot be checked out, so the discount formula is not applied.</li>
+    </ul>
+
+    <h2>Partitions</h2>
+    <p>Equivalence partitioning identifies classes of input that the rule treats the same way. One representative was chosen from each class. No boundary-value, pairwise, or decision-table cases were added.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Input</th>
+          <th>Partition</th>
+          <th>Class</th>
+          <th>Representative</th>
+          <th>Expected behaviour</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>paymentMethod</code></td>
+          <td>P1</td>
+          <td>Valid — cash</td>
+          <td><code>cash</code></td>
+          <td>201, discountRate 0.1, total = subtotal × 0.9</td>
+        </tr>
+        <tr>
+          <td><code>paymentMethod</code></td>
+          <td>P2</td>
+          <td>Valid — credit card</td>
+          <td><code>credit_card</code></td>
+          <td>201, discountRate 0, total = subtotal</td>
+        </tr>
+        <tr>
+          <td><code>paymentMethod</code></td>
+          <td>P3</td>
+          <td>Invalid — not in enum</td>
+          <td><code>paypal</code></td>
+          <td>400, no order</td>
+        </tr>
+        <tr>
+          <td>Cart state</td>
+          <td>C1</td>
+          <td>Valid — non-empty</td>
+          <td>Seed products (prod-1, prod-2, prod-3)</td>
+          <td>Discount formula may run</td>
+        </tr>
+        <tr>
+          <td>Cart state</td>
+          <td>C2</td>
+          <td>Invalid — empty</td>
+          <td>Empty cart for Alice after prior checkout</td>
+          <td>400, no order</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Finding</h2>
+    <div class="finding">
+      <p><strong>The discount rule matches the specification for every partition tested.</strong></p>
+      <ul>
+        <li>Cash on a payable cart: Mechanical Keyboard subtotal 120.00 → discount 12.00 → total 108.00 (order <code>aaabb359-a926-4be7-bdee-d43f9d4fbe11</code>).</li>
+        <li>Credit card on a payable cart: Headphones + two hubs subtotal 240.00 → discount 0.00 → total 240.00 (order <code>653058ac-9248-4932-9d26-9fd3cd264002</code>).</li>
+        <li>Invalid payment method <code>paypal</code>: HTTP 400, <code>paymentMethod is required and must be cash or credit_card.</code></li>
+        <li>Empty cart with valid <code>cash</code>: HTTP 400, <code>Cart is empty. Add products to the cart before checkout.</code></li>
+      </ul>
+      <p>No defects were observed. Expected API rejections (P3, C2) are recorded below as failure-path evidence; those test cases still passed because the API rejected them as specified.</p>
+    </div>
+
+    <h2>Executed cases and evidence</h2>
+
+    <article>
+      <h3>TC-EP-01 — Cash, non-empty cart</h3>
+      <p>
+        <span class="badge pass">Passed</span>
+        <span class="badge api-ok">API 201 success</span>
+      </p>
+      <p class="row">Partition P1 × C1 · User <code>alice@example.com</code> · Cart <code>prod-3</code> × 1 (120.00)</p>
+      <p>Expected: status 201, discountRate 0.1, discountAmount 12.00, total 108.00.</p>
+      <p>Actual: status 201, discountRate 0.1, discountAmount 12, total 108.</p>
+      <details open>
+        <summary>Evidence</summary>
+        <p>POST /cart → GET /cart (precondition)</p>
+        <pre>{
+  "postCart": {"status": 200, "subtotal": 120, "items": [{"productId": "prod-3", "name": "Mechanical Keyboard", "unitPrice": 120, "quantity": 1}]},
+  "getCart": {"status": 200, "subtotal": 120}
+}</pre>
+        <p>POST /checkout body: <code>{"paymentMethod":"cash"}</code></p>
+        <pre>HTTP/1.1 201
+Date: Wed, 04 Nov 2026 10:32:04 GMT
+Content-Type: application/json; charset=utf-8
+
+{
+  "message": "Checkout completed.",
+  "order": {
+    "id": "aaabb359-a926-4be7-bdee-d43f9d4fbe11",
+    "userId": "user-1",
+    "items": [{"productId": "prod-3", "name": "Mechanical Keyboard", "unitPrice": 120, "quantity": 1}],
+    "paymentMethod": "cash",
+    "subtotal": 120,
+    "discountRate": 0.1,
+    "discountAmount": 12,
+    "total": 108,
+    "createdAt": "2026-11-04T10:32:04.716Z"
+  }
+}</pre>
+      </details>
+    </article>
+
+    <article>
+      <h3>TC-EP-02 — Credit card, non-empty cart</h3>
+      <p>
+        <span class="badge pass">Passed</span>
+        <span class="badge api-ok">API 201 success</span>
+      </p>
+      <p class="row">Partition P2 × C1 · User <code>bob@example.com</code> · Cart <code>prod-1</code> × 1 + <code>prod-2</code> × 2 (240.00)</p>
+      <p>Expected: status 201, discountRate 0, discountAmount 0.00, total 240.00.</p>
+      <p>Actual: status 201, discountRate 0, discountAmount 0, total 240.</p>
+      <details open>
+        <summary>Evidence</summary>
+        <p>POST /cart → GET /cart (precondition)</p>
+        <pre>{
+  "postCart": {"status": 200, "subtotal": 240},
+  "getCart": {"status": 200, "items": [
+    {"productId": "prod-1", "name": "Wireless Headphones", "unitPrice": 150, "quantity": 1},
+    {"productId": "prod-2", "name": "USB-C Hub", "unitPrice": 45, "quantity": 2}
+  ]}
+}</pre>
+        <p>POST /checkout body: <code>{"paymentMethod":"credit_card"}</code></p>
+        <pre>HTTP/1.1 201
+Date: Wed, 04 Nov 2026 10:32:04 GMT
+Content-Type: application/json; charset=utf-8
+
+{
+  "message": "Checkout completed.",
+  "order": {
+    "id": "653058ac-9248-4932-9d26-9fd3cd264002",
+    "userId": "user-2",
+    "items": [
+      {"productId": "prod-1", "name": "Wireless Headphones", "unitPrice": 150, "quantity": 1},
+      {"productId": "prod-2", "name": "USB-C Hub", "unitPrice": 45, "quantity": 2}
+    ],
+    "paymentMethod": "credit_card",
+    "subtotal": 240,
+    "discountRate": 0,
+    "discountAmount": 0,
+    "total": 240,
+    "createdAt": "2026-11-04T10:32:04.768Z"
+  }
+}</pre>
+      </details>
+    </article>
+
+    <article>
+      <h3>TC-EP-03 — Invalid payment method (failure path)</h3>
+      <p>
+        <span class="badge pass">Passed</span>
+        <span class="badge api-rej">API 400 rejection</span>
+      </p>
+      <p class="row">Partition P3 × C1 · User <code>carol@example.com</code> · Cart <code>prod-2</code> × 1 · Representative <code>paypal</code></p>
+      <p>Expected: status 400, no order, discount not applied.</p>
+      <p>Actual: status 400, error <code>paymentMethod is required and must be cash or credit_card.</code></p>
+      <details open>
+        <summary>Evidence</summary>
+        <p>GET /cart confirmed a payable cart (subtotal 45) before the rejected checkout.</p>
+        <pre>GET /cart HTTP/1.1 200
+{"cart":{"items":[{"productId":"prod-2","name":"USB-C Hub","unitPrice":45,"quantity":1}],"subtotal":45}}</pre>
+        <p>POST /checkout body: <code>{"paymentMethod":"paypal"}</code></p>
+        <pre>HTTP/1.1 400
+Date: Wed, 04 Nov 2026 10:32:04 GMT
+Content-Type: application/json; charset=utf-8
+
+{"error":"paymentMethod is required and must be cash or credit_card."}</pre>
+      </details>
+    </article>
+
+    <article>
+      <h3>TC-EP-04 — Empty cart (failure path)</h3>
+      <p>
+        <span class="badge pass">Passed</span>
+        <span class="badge api-rej">API 400 rejection</span>
+      </p>
+      <p class="row">Partition C2 × P1 · User <code>alice@example.com</code> after TC-EP-01 cleared her cart · <code>paymentMethod: cash</code></p>
+      <p>Expected: status 400, no order.</p>
+      <p>Actual: status 400, error <code>Cart is empty. Add products to the cart before checkout.</code></p>
+      <details open>
+        <summary>Evidence</summary>
+        <pre>GET /cart HTTP/1.1 200
+{"cart":{"items":[],"subtotal":0}}</pre>
+        <p>POST /checkout body: <code>{"paymentMethod":"cash"}</code></p>
+        <pre>HTTP/1.1 400
+Date: Wed, 04 Nov 2026 10:32:04 GMT
+Content-Type: application/json; charset=utf-8
+
+{"error":"Cart is empty. Add products to the cart before checkout."}</pre>
+      </details>
+    </article>
+  </main>
+</body>
+</html>

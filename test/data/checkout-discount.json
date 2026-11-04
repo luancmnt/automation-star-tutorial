@@ -1,0 +1,67 @@
+[
+  {
+    "id": "TC-EP-01",
+    "title": "Cash payment on a non-empty cart applies 10% discount",
+    "partition": "P1 cash (valid) × C1 non-empty cart (valid)",
+    "user": "alice",
+    "setup": "setCart",
+    "items": [{ "productId": "prod-3", "quantity": 1 }],
+    "paymentMethod": "cash",
+    "expectedStatus": 201,
+    "expected": {
+      "message": "Checkout completed.",
+      "paymentMethod": "cash",
+      "subtotal": 120,
+      "discountRate": 0.1,
+      "discountAmount": 12,
+      "total": 108
+    }
+  },
+  {
+    "id": "TC-EP-02",
+    "title": "Credit card payment on a non-empty cart applies no discount",
+    "partition": "P2 credit_card (valid) × C1 non-empty cart (valid)",
+    "user": "bob",
+    "setup": "setCart",
+    "items": [
+      { "productId": "prod-1", "quantity": 1 },
+      { "productId": "prod-2", "quantity": 2 }
+    ],
+    "paymentMethod": "credit_card",
+    "expectedStatus": 201,
+    "expected": {
+      "message": "Checkout completed.",
+      "paymentMethod": "credit_card",
+      "subtotal": 240,
+      "discountRate": 0,
+      "discountAmount": 0,
+      "total": 240
+    }
+  },
+  {
+    "id": "TC-EP-03",
+    "title": "Payment method outside the allowed set is rejected",
+    "partition": "P3 paymentMethod not in {cash, credit_card} (invalid) × C1 non-empty cart",
+    "user": "carol",
+    "setup": "setCart",
+    "items": [{ "productId": "prod-2", "quantity": 1 }],
+    "paymentMethod": "paypal",
+    "expectedStatus": 400,
+    "expected": {
+      "error": "paymentMethod is required and must be cash or credit_card."
+    }
+  },
+  {
+    "id": "TC-EP-04",
+    "title": "Empty cart cannot be checked out, so no discount is applied",
+    "partition": "C2 empty cart (invalid for checkout) × P1 cash",
+    "user": "alice",
+    "setup": "emptyCart",
+    "items": [],
+    "paymentMethod": "cash",
+    "expectedStatus": 400,
+    "expected": {
+      "error": "Cart is empty. Add products to the cart before checkout."
+    }
+  }
+]

@@ -54,6 +54,16 @@ paths:
         '401':
           description: Invalid credentials
   /cart:
+    get:
+      tags: [Cart]
+      summary: Get the authenticated user's cart
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current cart for the logged-in user
+        '401':
+          description: Missing or invalid token
     post:
       tags: [Cart]
       summary: Replace the authenticated user's cart

@@ -4,6 +4,24 @@ const { authenticate } = require('../middleware/auth');
 
 const router = express.Router();
 
+function serializeCart(cart) {
+  const items = cart.items || [];
+  const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+
+  return {
+    items,
+    subtotal: Number(subtotal.toFixed(2)),
+  };
+}
+
+router.get('/cart', authenticate, (req, res) => {
+  const cart = db.getCart(req.user.id);
+
+  return res.status(200).json({
+    cart: serializeCart(cart),
+  });
+});
+
 router.post('/cart', authenticate, (req, res) => {
   const { items } = req.body || {};
 
@@ -44,17 +62,10 @@ router.post('/cart', authenticate, (req, res) => {
   }
 
   const cart = db.setCart(req.user.id, normalizedItems);
-  const subtotal = cart.items.reduce(
-    (sum, item) => sum + item.unitPrice * item.quantity,
-    0,
-  );
 
   return res.status(200).json({
     message: 'Cart updated.',
-    cart: {
-      items: cart.items,
-      subtotal: Number(subtotal.toFixed(2)),
-    },
+    cart: serializeCart(cart),
   });
 });
 

@@ -1,0 +1,14 @@
+{
+  "alice": {
+    "emailEnv": "USER_ALICE_EMAIL",
+    "passwordEnv": "USER_ALICE_PASSWORD"
+  },
+  "bob": {
+    "emailEnv": "USER_BOB_EMAIL",
+    "passwordEnv": "USER_BOB_PASSWORD"
+  },
+  "carol": {
+    "emailEnv": "USER_CAROL_EMAIL",
+    "passwordEnv": "USER_CAROL_PASSWORD"
+  }
+}
